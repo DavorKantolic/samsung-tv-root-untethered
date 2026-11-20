@@ -107,6 +107,17 @@ jobs:
             payloads/qn90f/out
             swu/out
           if-no-files-found: error
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Generate TV USB Root Image
+        run: |
+          nix --extra-experimental-features "nix-command flakes" run . -- --exploit-profile tv --beacon 192.168.1.2:4444 --authorized-keys payloads/common/out/SamsungTvArchiveRoot.dll --out out/tv-usb-root.img --force
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: final-tv-usb-stick
+          path: out/tv-usb-root.img
 
   package:
     name: package (${{ matrix.os }})
@@ -181,5 +192,5 @@ jobs:
           gh release upload "${GITHUB_REF_NAME}" \
             dist/release-assets/*.tar.gz \
             dist/release-assets/*.zip \
-            dist/release-assets/*.sha256 \
+            dist/release-assets/*.sha256
             --clobber
